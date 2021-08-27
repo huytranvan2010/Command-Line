@@ -166,23 +166,41 @@ ls >> directories.txt
 ```
 
 **Tìm kiếm theo pattern**
+`grep` - global regular expression print.
 
 ```python
-grep 'anh' file.txt
+grep anh file.txt
 ```
-Tìm kiếm các dòng có chứa 'anh' trong `file.txt`.
+Tìm kiếm các dòng có chứa 'anh' trong `file.txt`. Chúng ta không dùng dấu nháy trong câu lệnh.
 
 
 ```python
 grep -R pattern directory
 ```
-Câu lệnh này dùng để tìm kiếm các file trong directory theo mẫu (pattern) bao gồm cả trong subdirectory và đưa ra các tên file và dòng trong files đó chứa kết quả khớp.
+Câu lệnh này dùng để tìm kiếm các file trong directory theo mẫu (pattern) bao gồm cả trong subdirectory và đưa ra các tên file và dòng trong files đó chứa kết quả khớp. `-R` là kí hiệu của recursive. **Nó trả về filenames và các dòng khớp**.
+```python
+$ grep -R Arctic /home/ccuser/workspace/geography
+ 
+/home/ccuser/workspace/geography/deserts.txt:Arctic Desert
+/home/ccuser/workspace/geography/oceans.txt:Arctic Ocean
+```
 
 Ví dụ
 ```python
 grep -R red ./
 ```
 Nó sẽ tìm tất cả các từ chứa `red` trong các files trong thư mục hiện tại `./` kể các trong các thư mục con.
+
+```python
+grep -Rl pattern directory
+```
+Nó sẽ chỉ trả về các files mà không trả về các lines.
+```python
+$ grep -Rl Arctic /home/ccuser/workspace/geography
+ 
+/home/ccuser/workspace/geography/deserts.txt
+/home/ccuser/workspace/geography/oceans.txt
+```
 
 **Case insensitive search - tìm kiếm không phân biệt hoa thường**
 
@@ -252,8 +270,203 @@ $ cat deserts.txt > forests.txt
 ```
 `>` takes the standard output of the command on the left, and redirects it to the file on the right. Here the standard output of cat deserts.txt is redirected to forests.txt. Nội dung của file bên tráu được ghi đè vào file bên phải.
 
+**sort**
+```python
+$ sort continents.txt 
+```
+`sort` lấy standaed input rồi sắp xếp chúng để được standard output (file ban đầu không đổi).
+
+```python
+$ cat glaciers.txt | sort > sorted-glaciers.txt
+```
+Lấy standard output từ câu lệnh `cat` và "pipe" nó đến `sort` để sắp xếp. Standard output từ `sort` được chuyển đến file mới có tên là `sorted-glaciers.txt`.
+
+adjacent: /əˈdʒeɪsnt/: liền kề
+
+```python
+$ uniq deserts.txt 
+```
+`uniq` kí hiệu cho "unique". Nó lọc ra (filter out) bản sao liền kề (adjacent duplicate) trong file, **vẫn giữ lại một bản**. Nếu các bản sao không liền kề sẽ được giữ lại. Ở đay hiển thị output ra terminal.
+
+```python
+$ sort deserts.txt | uniq
+```
+Một cách sử dụng hiệu quả (effective way) `uniq` là sử dụng `sort` để sắp xếp sau đó "pipe" standard output đến uniq. Do đó các bản sao sẽ gần nhau và bị loại bỏ ra.
+
+```python
+sort deserts.txt | uniq > uniq-deserts.txt
+```
+Ở đây sẽ gửi nội dung được lọ rồi đến file mới.
+
+**sed**
+```python
+sed 's/snow/rain/' forests.txt 
+```
+`sed` là viết tắt của "stream editor" - trình chỉnh sửa luồng. Nó nhận vào standard input và thay đổi nó dựa trên biểu thức trước khi hiển thị nó như standard output. Nó tương tự như tìm kiếm và thay thế.
+
+Cùng xem biểu thức `'s/snow/rain/'`:
+- `s`: viết tắt cho `substitution`. Nó luôn được sử dụng cho `sed` trong substitution (sự thay thế)
+- `snow`: chuỗi tìm kiếm
+- `rain`: chuỗi thay thế
+
+Trong trường hợp này `sed` sẽ tìm kiếm `snow` trong file `forests.txt` và thay thế nó bằng `rain`. **Quan trọng, nó chỉ thay thế từ `snow` ĐẦU TIÊN trong mỗi dòng**.
+
+```python
+sed 's/snow/rain/g' forests.txt 
+```
+Câu lệnh bên trên có sử dụng thêm `g` (global). `sed` sẽ tìm kiếm `snow` trong file `forests.txt` và thay thế bằng từ `rain` globally. Có nghĩa rằng tất cả các từ `snow` đều được thay đổi bằng `rain.
+
+Tuy nhiên `sed` bên trên chúng ta mới ghi lại command line ouput, còn file cũ KHÔNG ĐỔI. Để ghi lại file ban đầu chúng ta cần sử dụng option `-i` ở đầu command như sau:
+```python
+sed -i 's/snow/rain/g' forests.txt
+```
+
+Congratulations! You learned how to use the command line to redirect standard input and standard output. What can we generalize so far?
+Redirection reroutes standard input, standard output, and standard error. The common redirection commands are:
+- `>` redirects standard output of a command to a file, overwriting previous content.
+- `>>` redirects standard output of a command to a file, appending new content to old content.
+- `<` redirects standard input to a command.
+- `|` redirects standard output of a command to another command.
+A number of other commands are powerful when combined with redirection commands:
+- `sort`: sorts lines of text alphabetically.
+- `uniq`: filters duplicate, adjacent lines of text.
+- `grep`: searches for a text pattern and outputs it.
+- `sed`: searches for a text pattern, modifies it, and outputs it
+
 ## Configuring the environment
-Environment variables là các variable có thể đươc sử dụng trên tất cả terminal command (dùng chung cho hệ điều hành và ứng dụng).
+
+indispensible: /ˌɪndɪˈspensəbl/: không thể thiếu
+
+Mỗi khi chúng ta mở Terminal nó tạo ra một session mới. Nó sẽ load các cài đặt và tùy chọn (tạo nên command line environment). Chúng ta có thể cấu hình environment để hỗ trợ các câu lệnh và chương trình chúng ta tạo ra. Điều này cho phép chúng ta tùy chỉnh lời chào, tham chiếu cho các câu lệnh và các biến có thể chia sẻ giữa các ứng dụng.
+
+Đầu tiên chúng ta tim hiểu về `nano`, trình chỉnh sửa file duy nhất trong terminal. Nếu có vấn đề gì với `nano` nhấn `Crtl + C` để thoát. 
+
+```python
+nano hello.txt
+```
+Nó sẽ mở `nano` text editor với file mới `hello.txt`. Gõ vào đó dòng một dòng text. Nhấn `Ctrl + O` để lưu file, nhấn `Enter` để đồng ý và cuối cùng nhấn `Ctrl + X` để thoát. Có thể kiểm tra nội dung vừa nhập vào bằng câu lệnh
+```python
+cat hello.txt
+```
+
+> Chú ý: kí hiệu `^` trong chỉ dẫn tương ứng với Ctrl
+
+**Bash Profile**
+A bash profile is a file used to store environment settings for your terminal, and it’s accessible by the name `~/.bash_profile`.
+
+**Bash profile** là file được sử dụng để lưu các cài đặt môi trường cho terminal và nó có thể tiếp cận được thông qua tên `~/.bash_profile`.
+
+Khi session bắt đầu (mở Terminal) nó sẽ load tất cả các nội dung (một số cái chạy) của **bash profile** trước khi thực thi commands.:
+- `~` thể hiện user's home directory
+- `.` thể hiện file ẩn
+- `~/.bash_profile` quan trọng bởi vì đây là cách câu lệnh (command) nhận ra bash profile.
+
+Để mở và chỉnh sửa **bash profile** có thể sử dụng câu lệnh
+```python
+nano ~/.bash_profile
+```
+
+Khi chúng ta chỉnh sửa bash profile chúng ta có thể thêm các commands để thực thi mỗi khi terminal session mới được bắt đầu (terminal được mở thì có những commmands được thực hiện).
+
+Để kích hoạt sự thay đổi được thực hiện trong `~/.bash_profile` cho session hiện tại chúng ta sử dụng câu lệnh dưới đây:
+```python
+source ~/.bash_profile
+```
+Câu lệnh này làm cho các thay đổi trong bash profile có hiệu lực ngay lập tức mà không cần đóng terminal và khởi động lại session mới.
+
+**Ví dụ**:
+```python
+nano ~/.bash_profile 
+```
+Để mở bash profile. Trong `~/.bash_profile` nhập dòng sau:
+```python
+echo "Welcome, Jane Doe" 
+```
+
+Update sự thay đổi
+```python
+source ~/.bash_profile 
+```
+ngay lập túc chúng ta thấy nó hiện ra `"Welcome, Jane Doe"`.
+
+**Aliases**
+
+Như bên trên chúng ta có thể thêm các cài đặt và câu lệnh, cái mà sẽ được thực thi mỗi lần terminal mới được bắt đầu. Một loại cài đặt có thể tạo là **alias**. Đầu tiên vẫn phải mở bash profile đã:
+```python
+nano ~/.bash_profile 
+```
+Sau đó chèn thêm dòng sau vào đó
+```python
+alias pd="pwd"
+```
+Cho phép gán câu lệnh thành dạng rút gọn hơn (gọi là alias - tham chiếu). Câu lệnh `pd` bây giờ sẽ tương tự `pwd`. 
+
+Nên nhớ thực hiện xong cũng cần phải update thông qua `source ~/.bash_profile` để alias có hiệu lực trong session hiện tại.
+
+Chúng ta có thể thêm nhiều tham chiếu các lệnh cho session hiện tại.
+
+**Environment Variables**
+
+Environment variables là các variable có thể được sử dụng trên tất cả terminal command (dùng chung cho hệ điều hành và ứng dụng) và lưu giữ thông tin về environment (các cài đặt và sở thích - preference).
+
+Điều gì xảy ra nếu chúng ta lưu câu sau trong **~/.bash_profile**.
+```python
+export USER="Jane Doe"
+```
+- Dòng `USER="Jane Doe"` sẽ cài đặt environment variable (biến môi trường) USER có tên là "Jane Doe" (như kiểu gán giá trị). Thường USER variable được đặt theo tên của người sở hữu máy tính
+- Dòng `export` làm cho biến có giá trị đến tất cả các phiên con (child session) được khởi tạo từ phiên hiện tại mình đang đứng. Đây là cách làm cho biến tồn tại trong các chương trình.
+- Ở command line, câu lênh `echo $USER` trra về giá trị của biến. **Chú ý `$` luôn được sử dụng khi trả về giá trị của biến**. 
+
+**PS1 Environment variable**
+
+**PS1** là biến môi trường xác định kiểu dáng và phong của command prompt (dấu nhắc lệnh).
+
+Ví dụ nếu chúng ta lưu dòng này trong **~/.bash_profile**
+```python
+export PS1=">> "
+```
+- `export PS1=">> "` sẽ cài đặt command prompt variable và exports the variable. Ở đây chúng ta thay đổi command prompt (dấu nhắc lệnh) mặc định từ `$` sang `>>`.
+- Sau khi sử dụng lệnh `source`, command line sẽ hiển thị dấu nhắc lệnh mới.
+
+**HOME environment variable**
+
+Biến môi trường `HOME` là biến hiển thị đường dẫn của home directory. Nhắc lại luôn sử dụng biến môi trường thì luôn kèm `$` phía trước.
+```python
+echo $HOME
+```
+Câu lệnh này trả về đường dẫn của *home directory*.
+
+**PATH environment variable**
+
+`PATH` là biến môi trường lưu giữ list của các directories được phân cách nhau bằng dấu hai chấm (colon).
+```python
+$ echo $PATH
+ 
+/home/huytranvan2010/Nuclear/geant4.10.07.p02-install/bin:/home/huytranvan2010/Nuclear/root/bin:/home/huytranvan2010/miniconda3/condabin:/home/huytranvan2010/.local/bin:/home/huytranvan2010/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+```
+
+Mỗi thư mục chứa scripts (tập lệnh hay kịch bản) cho command line thực thi. `PATH` đơn giản chứa list các directories có các scripts.
+
+Ví dụ có nhiều câu lệnh chúng ta đã học là các scripts được lưu trong **/bin** directory
+```python
+/bin/pwd
+/bin/ls
+```
+
+Chúng ta có thể chạy một số câu lệnh như trên, kết quả nó như `pwd` hay `ls`. Chúng ta có thể customize (tùy chỉnh) PATH variable khi thêm các scripts vào.
+
+**env**
+```python
+env
+```
+Câu lệnh này trả về list of environment variables cho current user. Thấy không khi gõ lệnh này chúng ta sẽ thấy các environment variables như `PATH`, `USER`...
+
+Có thể chọn giá trị của biến môi trường cụ thể ví dụ `PATH` thông qua lệnh sau:
+```python
+env | grep PATH
+```
+Như chúng ta đã biết standard output của `env` sẽ được pipe đến `grep`. Sau đó nó tìm kiến giá trị của `PATH` và được ra terminal. Cái này tương tự như `echo $PATH`.
+
 
 Dấu `~` trong là viết tắt cho `$HOME` (đường dẫn của home directory). Nên lệnh `cd $HOME` và `cd ~` hoàn toàn giống nhau. Nếu dùng mỗi `cd` nó cũng đưa về thư mục home.
 
@@ -262,21 +475,26 @@ history
 ```
 Nó giúp hiển thị tất cả các câu lệnh đã được thực thi trong phiên hiện tại (current session).
 
-Biến môi trường `$HOME`.
-```python
-echo $HOME
-```
-Câu lệnh này trả về đường dẫn của *home directory*.
 
-```python
-env
-```
-Câu lệnh này trả về tất cả environment variables cho current session.
 
+
+Kí hiệu `/` trong Unix chỉ thư mục `root`, nó chứa tất cả các thư mục khác.
 ```python
-alias pd="pwd"
+cd /`
 ```
-Cho phép gán câu lệnh thành dạng rút gọn hơn (gọi là alias - tham chiếu).
+sẽ chuyển đến thư mục `root.
+
+Lệnh wc (word count) trong các hệ điều hành Unix/ Linux được sử dụng để đếm số dòng mới, đếm số từ, đếm byte và ký tự trong một tệp được chỉ định bởi các file arguments. Cú pháp của lệnh wc như dưới đây.
+```python
+wc [options] filenames
+```
+Sau đây là các tùy chọn và cách sử dụng được cung cấp bởi lệnh.
+- `wc -l`: prints số dòng trong một file. 
+- `wc -w`: prints số từ trong một file. 
+- `wc -c`: hiển thị số bytes trong một file. 
+- `wc -m`: prints số kí tự trong một file. 
+- `wc -L`: prints độ dài của dòng dài nhất trong một file
+
 
 
 
